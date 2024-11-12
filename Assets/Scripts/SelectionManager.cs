@@ -1,85 +1,77 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 public class SelectionManager : MonoBehaviour
 {
-    private GameObject selectedObject;
-    private Camera mainCamera;
-    
-    // The layer that contains selectable objects
+    [Header("Selection Settings")]
     [SerializeField] private LayerMask selectableLayer;
-    
-    // Visual indicator for selected object
     [SerializeField] private Color selectedColor = Color.yellow;
-    private Color originalColor;
-    
-    void Start()
+
+    private Camera mainCamera;
+    private Selectable selectedObject;
+
+    public UnityEvent<Selectable> OnObjectSelected;
+    public UnityEvent<Selectable> OnObjectDeselected;
+    public UnityEvent<Vector2> OnLocationSelected;
+
+    private void Start()
     {
         mainCamera = Camera.main;
     }
-    
-    void Update()
+
+    private void Update()
     {
-        // Handle left mouse click
         if (Input.GetMouseButtonDown(0))
         {
             HandleSelection();
         }
     }
-    
-    void HandleSelection()
+
+    private void HandleSelection()
     {
-        print("ssssssss");
         Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
         RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, Mathf.Infinity, selectableLayer);
-        
-        // If we hit something
+
         if (hit.collider != null)
         {
-            // If we click the currently selected object, deselect it
-            if (hit.collider.gameObject == selectedObject)
+            Selectable selectable = hit.collider.GetComponent<Selectable>();
+            if (selectable != null)
             {
-                DeselectCurrentObject();
-                return;
-            }
-            
-            // If we click a new object while having one selected, deselect the old one
-            if (selectedObject != null)
-            {
-                DeselectCurrentObject();
-            }
-            
-            // Select the new object
-            selectedObject = hit.collider.gameObject;
-            
-            // Store original color and change to selected color
-            SpriteRenderer spriteRenderer = selectedObject.GetComponent<SpriteRenderer>();
-            if (spriteRenderer != null)
-            {
-                originalColor = spriteRenderer.color;
-                spriteRenderer.color = selectedColor;
+                if (selectable == selectedObject)
+                {
+                    DeselectCurrentObject();
+                }
+                else
+                {
+                    SelectNewObject(selectable);
+                }
             }
         }
-        // If we click empty space and have something selected
         else if (selectedObject != null)
         {
-            // Move the selected object to the clicked position
-            Vector3 worldPosition = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-            worldPosition.z = 0; // Keep the z-position consistent for 2D
-            selectedObject.transform.position = worldPosition;
+            Vector2 targetPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            OnLocationSelected?.Invoke(targetPos);
         }
     }
-    
-    void DeselectCurrentObject()
+
+    private void SelectNewObject(Selectable selectable)
     {
         if (selectedObject != null)
         {
-            // Restore original color
-            SpriteRenderer spriteRenderer = selectedObject.GetComponent<SpriteRenderer>();
-            if (spriteRenderer != null)
-            {
-                spriteRenderer.color = originalColor;
-            }
-            
+            DeselectCurrentObject();
+        }
+
+        selectedObject = selectable;
+        selectedObject.Select(selectedColor);
+        OnObjectSelected?.Invoke(selectedObject);
+    }
+
+    private void DeselectCurrentObject()
+    {
+        if (selectedObject != null)
+        {
+            OnObjectDeselected?.Invoke(selectedObject);
+            selectedObject.Deselect();
             selectedObject = null;
         }
     }
