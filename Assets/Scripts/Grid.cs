@@ -42,7 +42,7 @@ public class Grid : MonoBehaviour
         return !Physics2D.OverlapCircle(position, gridSize * 0.4f, obstacleLayer);
     }
 
-    void OnDrawGizmos()
+    private void OnDrawGizmos()
     {
         if (!showGrid) return;
 

@@ -14,12 +14,12 @@ public class Pathfinder : MonoBehaviour
     private List<GameObject> visualizationObjects = new List<GameObject>();
     public event System.Action<List<Vector2>> OnPathFound;
 
-    void Awake()
+    private void Awake()
     {
         grid = FindFirstObjectByType<Grid>();
     }
 
-    void Start()
+    private void Start()
     {
         if (showExploredNodes)
         {
@@ -88,7 +88,7 @@ public class Pathfinder : MonoBehaviour
         return null;
     }
 
-    List<Vector2> GetNeighbors(Vector2 position)
+    private List<Vector2> GetNeighbors(Vector2 position)
     {
         var neighbors = new List<Vector2>();
 
@@ -110,7 +110,7 @@ public class Pathfinder : MonoBehaviour
         return neighbors;
     }
 
-    List<Vector2> ReconstructPath(PathNode endNode)
+    private List<Vector2> ReconstructPath(PathNode endNode)
     {
         var path = new List<Vector2>();
         var current = endNode;
@@ -192,7 +192,7 @@ public class Pathfinder : MonoBehaviour
         }
     }
 
-    void OnDestroy()
+    private void OnDestroy()
     {
         foreach (var obj in visualizationObjects)
         {
